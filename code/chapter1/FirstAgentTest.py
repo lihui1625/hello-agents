@@ -59,47 +59,63 @@ def get_weather(city: str) -> str:
 
 
 import os
-from tavily import TavilyClient
+from serpapi import GoogleSearch
 
 def get_attraction(city: str, weather: str) -> str:
     """
-    根据城市和天气，使用Tavily Search API搜索并返回优化后的景点推荐。
+    根据城市和天气，使用SerpApi (Google Search) 搜索并返回优化后的景点推荐。
     """
 
     # 从环境变量或主程序配置中获取API密钥
-    api_key = os.environ.get("TAVILY_API_KEY") # 推荐方式
+    api_key = os.environ.get("SERPAPI_API_KEY") # 推荐方式
     # 或者，我们可以在主循环中传入，如此处代码所示
 
     if not api_key:
-        return "错误：未配置TAVILY_API_KEY。"
+        return "错误：未配置SERPAPI_API_KEY。"
 
-    # 2. 初始化Tavily客户端
-    tavily = TavilyClient(api_key=api_key)
-    
-    # 3. 构造一个精确的查询
+    # 2. 构造一个精确的查询
     query = f"'{city}' 在'{weather}'天气下最值得去的旅游景点推荐及理由"
-    
+
+    # 3. 初始化SerpApi客户端并配置查询参数
+    search = GoogleSearch({
+        "q": query,
+        "api_key": api_key,
+        "hl": "zh-cn",  # 界面语言：中文
+        "gl": "cn",     # 搜索区域：中国
+    })
+
     try:
-        # 4. 调用API，include_answer=True会返回一个综合性的回答
-        response = tavily.search(query=query, search_depth="basic", include_answer=True)
-        
-        # 5. Tavily返回的结果已经非常干净，可以直接使用
-        # response['answer'] 是一个基于所有搜索结果的总结性回答
-        if response.get("answer"):
-            return response["answer"]
-        
-        # 如果没有综合性回答，则格式化原始结果
+        # 4. 调用API获取搜索结果
+        response = search.get_dict()
+
+        if "error" in response:
+            return f"错误：执行SerpApi搜索时出现问题 - {response['error']}"
+
+        # 5. 优先返回 Google 的答案框 / 知识图谱摘要（相当于综合性回答）
+        answer_box = response.get("answer_box", {})
+        if answer_box.get("answer"):
+            return answer_box["answer"]
+        if answer_box.get("snippet"):
+            return answer_box["snippet"]
+
+        knowledge_graph = response.get("knowledge_graph", {})
+        if knowledge_graph.get("description"):
+            return knowledge_graph["description"]
+
+        # 6. 如果没有综合性回答，则格式化自然搜索结果
         formatted_results = []
-        for result in response.get("results", []):
-            formatted_results.append(f"- {result['title']}: {result['content']}")
-        
+        for result in response.get("organic_results", []):
+            title = result.get("title", "")
+            snippet = result.get("snippet", "")
+            formatted_results.append(f"- {title}: {snippet}")
+
         if not formatted_results:
              return "抱歉，没有找到相关的旅游景点推荐。"
 
         return "根据搜索，为您找到以下信息：\n" + "\n".join(formatted_results)
 
     except Exception as e:
-        return f"错误：执行Tavily搜索时出现问题 - {e}"
+        return f"错误：执行SerpApi搜索时出现问题 - {e}"
 
 
 # 将所有工具函数放入一个字典，方便后续调用
@@ -151,7 +167,8 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("BASE_URL")
 MODEL_ID = os.getenv("MODEL_ID")
-TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
+os.environ['SERPAPI_API_KEY'] = SERPAPI_API_KEY
 
 llm = OpenAICompatibleClient(
     model=MODEL_ID,
@@ -195,12 +212,28 @@ for i in range(5): # 设置最大循环次数
     action_str = action_match.group(1).strip()
 
     if action_str.startswith("Finish"):
-        final_answer = re.match(r"Finish\[(.*)\]", action_str).group(1)
+        # 兼容多种格式：Finish[答案]、Finish[答案（缺少右括号）、Finish 答案
+        finish_match = re.match(r"Finish\s*\[(.*?)\]?$", action_str, re.DOTALL)
+        if finish_match:
+            final_answer = finish_match.group(1).strip()
+        else:
+            # 没有方括号时，取 Finish 之后的全部内容作为答案
+            final_answer = action_str[len("Finish"):].strip()
         print(f"任务完成，最终答案: {final_answer}")
         break
-    
-    tool_name = re.search(r"(\w+)\(", action_str).group(1)
-    args_str = re.search(r"\((.*)\)", action_str).group(1)
+
+    # 解析工具调用，若格式不符合预期则回传错误提示而不是崩溃
+    tool_name_match = re.search(r"(\w+)\(", action_str)
+    args_match = re.search(r"\((.*)\)", action_str)
+    if not tool_name_match or not args_match:
+        observation = f"错误：无法解析 Action '{action_str}'。请使用 function_name(arg=\"value\") 或 Finish[答案] 的格式。"
+        observation_str = f"Observation: {observation}"
+        print(f"{observation_str}\n" + "="*40)
+        prompt_history.append(observation_str)
+        continue
+
+    tool_name = tool_name_match.group(1)
+    args_str = args_match.group(1)
     kwargs = dict(re.findall(r'(\w+)="([^"]*)"', args_str))
 
     if tool_name in available_tools:
