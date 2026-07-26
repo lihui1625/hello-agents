@@ -142,10 +142,16 @@ import re
 
 # --- 1. 配置LLM客户端 ---
 # 请根据您使用的服务，将这里替换成对应的凭证和地址
-API_KEY = "YOUR_API_KEY"
-BASE_URL = "YOUR_BASE_URL"
-MODEL_ID = "YOUR_MODEL_ID"
-os.environ['TAVILY_API_KEY'] = "YOUR_TAVILY_API_KEY"
+from dotenv import load_dotenv
+
+# 加载环境变量
+load_dotenv()
+
+# 配置API密钥
+API_KEY = os.getenv("API_KEY")
+BASE_URL = os.getenv("BASE_URL")
+MODEL_ID = os.getenv("MODEL_ID")
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
 
 llm = OpenAICompatibleClient(
     model=MODEL_ID,
