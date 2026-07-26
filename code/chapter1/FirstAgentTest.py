@@ -59,55 +59,39 @@ def get_weather(city: str) -> str:
 
 
 import os
-from serpapi import GoogleSearch
+from tavily import TavilyClient
 
 def get_attraction(city: str, weather: str) -> str:
     """
-    根据城市和天气，使用SerpApi (Google Search) 搜索并返回优化后的景点推荐。
+    根据城市和天气，使用Tavily Search API搜索并返回优化后的景点推荐。
     """
 
     # 从环境变量或主程序配置中获取API密钥
-    api_key = os.environ.get("SERPAPI_API_KEY") # 推荐方式
+    api_key = os.environ.get("TAVILY_API_KEY") # 推荐方式
     # 或者，我们可以在主循环中传入，如此处代码所示
 
     if not api_key:
-        return "错误：未配置SERPAPI_API_KEY。"
+        return "错误：未配置TAVILY_API_KEY。"
 
-    # 2. 构造一个精确的查询
+    # 2. 初始化Tavily客户端
+    tavily = TavilyClient(api_key=api_key)
+
+    # 3. 构造一个精确的查询
     query = f"'{city}' 在'{weather}'天气下最值得去的旅游景点推荐及理由"
 
-    # 3. 初始化SerpApi客户端并配置查询参数
-    search = GoogleSearch({
-        "q": query,
-        "api_key": api_key,
-        "hl": "zh-cn",  # 界面语言：中文
-        "gl": "cn",     # 搜索区域：中国
-    })
-
     try:
-        # 4. 调用API获取搜索结果
-        response = search.get_dict()
+        # 4. 调用API，include_answer=True会返回一个综合性的回答
+        response = tavily.search(query=query, search_depth="basic", include_answer=True)
 
-        if "error" in response:
-            return f"错误：执行SerpApi搜索时出现问题 - {response['error']}"
+        # 5. Tavily返回的结果已经非常干净，可以直接使用
+        # response['answer'] 是一个基于所有搜索结果的总结性回答
+        if response.get("answer"):
+            return response["answer"]
 
-        # 5. 优先返回 Google 的答案框 / 知识图谱摘要（相当于综合性回答）
-        answer_box = response.get("answer_box", {})
-        if answer_box.get("answer"):
-            return answer_box["answer"]
-        if answer_box.get("snippet"):
-            return answer_box["snippet"]
-
-        knowledge_graph = response.get("knowledge_graph", {})
-        if knowledge_graph.get("description"):
-            return knowledge_graph["description"]
-
-        # 6. 如果没有综合性回答，则格式化自然搜索结果
+        # 如果没有综合性回答，则格式化原始结果
         formatted_results = []
-        for result in response.get("organic_results", []):
-            title = result.get("title", "")
-            snippet = result.get("snippet", "")
-            formatted_results.append(f"- {title}: {snippet}")
+        for result in response.get("results", []):
+            formatted_results.append(f"- {result['title']}: {result['content']}")
 
         if not formatted_results:
              return "抱歉，没有找到相关的旅游景点推荐。"
@@ -115,7 +99,7 @@ def get_attraction(city: str, weather: str) -> str:
         return "根据搜索，为您找到以下信息：\n" + "\n".join(formatted_results)
 
     except Exception as e:
-        return f"错误：执行SerpApi搜索时出现问题 - {e}"
+        return f"错误：执行Tavily搜索时出现问题 - {e}"
 
 
 # 将所有工具函数放入一个字典，方便后续调用
@@ -167,8 +151,8 @@ load_dotenv()
 API_KEY = os.getenv("API_KEY")
 BASE_URL = os.getenv("BASE_URL")
 MODEL_ID = os.getenv("MODEL_ID")
-SERPAPI_API_KEY = os.getenv("SERPAPI_API_KEY")
-os.environ['SERPAPI_API_KEY'] = SERPAPI_API_KEY
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY")
+os.environ['TAVILY_API_KEY'] = TAVILY_API_KEY
 
 llm = OpenAICompatibleClient(
     model=MODEL_ID,
