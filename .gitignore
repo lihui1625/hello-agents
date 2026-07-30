@@ -167,3 +167,6 @@ test_*.py
 !test_tools.py
 .workbuddy/
 memory/
+
+# GAIA benchmark data (re-downloadable; blocked by LFS on public forks)
+code/chapter12/data/gaia/
