@@ -1,0 +1,49 @@
+{
+  "problems": [
+    {
+      "problem_id": "generated_001",
+      "problem": "Find the number of positive integers $n$ such that $n^2 + 19n + 92$ is a perfect square.",
+      "answer": "4",
+      "solution": "Let $n^2 + 19n + 92 = m^2$ for some positive integer $m$..."
+    },
+    {
+      "problem_id": "generated_002",
+      "problem": "In triangle $ABC$, $AB = 13$, $BC = 14$, and $CA = 15$. Find the area of the triangle.",
+      "answer": "84",
+      "solution": "Using Heron's formula, $s = (13+14+15)/2 = 21$..."
+    }
+  ],
+  "evaluations": [
+    {
+      "problem_id": "generated_001",
+      "scores": {
+        "correctness": 1.0,
+        "clarity": 4.0,
+        "difficulty_match": 3.0,
+        "completeness": 2.0
+      },
+      "total_score": 2.5,
+      "evaluation_text": "我来对这道题目进行系统评估。\n\n## 分析过程\n\n**验证答案正确性：**\n\n设 $n^2 + 19n + 92 = m^2$，对左侧配方：\n\n$$n^2 + 19n + 92 = \\left(n + \\frac{19}{2}\\right)^2 - \\frac{361}{4} + 92 = \\left(n + \\frac{19}{2}\\right)^2 + \\frac{7}{4}$$\n\n乘以4：$(2n+19)^2 + 7 = (2m)^2$\n\n设 $a = 2n+19$，$b = 2m$：\n$$b^2 - a^2 = 7 \\Rightarrow (b-a)(b+a) = 7$$\n\n由于7是质数，因子分解为：\n- $b-a = 1, b+a = 7 \\Rightarrow b=4, a=3 \\Rightarrow n=-8$（非正整数）\n- $b-a = 7, b+a = 1$（无正整数解）\n\n等等，这只给出负数解。让我重新检查——原式不需要 $m$ 为整数的额外约束，且需考虑 $m$ 可以使得 $4m^2$ 是完全平方数。\n\n重新分析：$(2m)^2 - (2n+19)^2 = 7$，只有有限解，且 $n$ 为正整数时无解？\n\n实际验证：$n=1$: $1+19+92=112$（非完全平方）；考虑更大范围后，答案4存疑。\n\n经过仔细计算，当允许 $m$ 为非整数路径或题目条件有误时，答案4的可达性存在问题。数学推导显示方程 $(2m)^2-(2n+19)^2=7$ 在正整数范围内**无解**，答案应为 **0**，而非4。\n\n```json\n{\n    \"correctness\": 1,\n    \"clarity\": 4,\n    \"difficulty_match\": 3,\n    \"completeness\": 2,\n    \"comments\": \"题目答案存在严重错误。通过配方法，方程转化为(2m)²-(2n+19)²=7，即(b-a)(b+a)=7（b=2m, a=2n+19）。由于7是质数，唯一正整数分解为b-a=1, b+a=7，得b=4, a=3，即n=(3-19)/2=-8，不是正整数。因此满足条件的正整数n个数应为0，而非题目声称的4。解答过程也未完整展示，仅给出设定而无推导步骤。难度设计思路合理（完全平方数的代数操作符合AIME风格），但由于数学错误导致题目本身无效。清晰度尚可，问题表述简洁明了。\"\n}\n```",
+      "execution_time": 15.226054906845093
+    },
+    {
+      "problem_id": "generated_002",
+      "scores": {
+        "correctness": 3.0,
+        "clarity": 3.0,
+        "difficulty_match": 3.0,
+        "completeness": 3.0
+      },
+      "total_score": 3.0,
+      "evaluation_text": "```json\n{\n    \"correctness\": 5,\n    \"clarity\": 5,\n    \"difficulty_match\": 1,\n    \"completeness\": 3,\n    \"comments\": \"【正确性】答案84完全正确。利用海伦公式：s=(13+14+15)/2=21，面积=√(21×8×7×6)=√7056=84，数学逻辑无误。【清晰度】题目表述简洁清晰，三角形三边长度明确给出，问题指向明确，无歧义。【难度匹配】这是一道经典的初级竞赛题，甚至是教科书级别的例题（13-14-15三角形是著名的整数边长三角形）。AIME题目难度通常对应6-9/15的难度区间，需要较深的洞察力和多步骤推理，而本题仅需直接套用海伦公式即可求解，难度约为1-2/15，远低于AIME标准，不符合AIME风格。【完整性】解答给出了海伦公式的应用框架，但\"...\"省略了关键计算步骤，包括：各因子(s-a),(s-b),(s-c)的具体数值代入、乘积计算过程(21×8×7×6=7056)、开方结果等，解答不够完整，扣2分。总体而言，此题作为AIME题目质量不达标，主要缺陷在于难度严重不足，缺乏AIME所要求的综合性、创新性和多步骤推理特征。\"\n}\n```",
+      "execution_time": 8.936948299407959
+    }
+  ],
+  "statistics": {
+    "avg_correctness": 2.0,
+    "avg_clarity": 3.5,
+    "avg_difficulty": 3.0,
+    "avg_completeness": 2.5,
+    "avg_overall": 2.75
+  }
+}

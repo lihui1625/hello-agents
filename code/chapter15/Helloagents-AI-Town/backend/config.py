@@ -10,7 +10,7 @@ class Settings:
     API_TITLE = "赛博小镇 API"
     API_VERSION = "1.0.0"
     API_HOST = "0.0.0.0"
-    API_PORT = 8000
+    API_PORT = 7549
     
     # NPC配置
     NPC_UPDATE_INTERVAL = 30  # NPC状态更新间隔(秒)

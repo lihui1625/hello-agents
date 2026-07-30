@@ -8,6 +8,10 @@ import sys
 from pathlib import Path
 import json
 
+# 加载环境变量（包含 HF_ENDPOINT 镜像配置）
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).parent / ".env")
+
 # 添加项目路径
 project_root = Path(__file__).parent.parent / "HelloAgents"
 sys.path.insert(0, str(project_root))
@@ -47,6 +51,10 @@ def quick_test():
     print("加载数据集...")
     result = tool.run(data_config)
     data = json.loads(result)
+    if data.get("status") == "error":
+        print(f"❌ 数据集加载失败: {data.get('message', '未知错误')}")
+        print(json.dumps(data, indent=2, ensure_ascii=False))
+        return
     print(f"✅ 数据集加载成功: {data['dataset_size']} 样本")
     print(json.dumps(data, indent=2, ensure_ascii=False))
     

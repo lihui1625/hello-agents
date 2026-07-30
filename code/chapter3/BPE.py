@@ -21,14 +21,17 @@ def merge_vocab(pair, v_in):
 
 # 准备语料库，每个词末尾加上</w>表示结束，并切分好字符
 vocab = {'h u g </w>': 1, 'p u g </w>': 1, 'p u n </w>': 1, 'b u n </w>': 1}
-num_merges = 4 # 设置合并次数
-
+num_merges = 20 # 设置合并次数
+all_vocab = {};
+all_vocab.update(vocab)
 for i in range(num_merges):
     pairs = get_stats(vocab)
     if not pairs:
         break
     best = max(pairs, key=pairs.get)
     vocab = merge_vocab(best, vocab)
+    all_vocab.update(vocab)
     print(f"第{i+1}次合并: {best} -> {''.join(best)}")
     print(f"新词表（部分）: {list(vocab.keys())}")
+    print(f"All词表: {all_vocab}")
     print("-" * 20)

@@ -23,7 +23,7 @@ import os
 # 添加HelloAgents路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "HelloAgents"))
 
-from data_generation.run_complete_evaluation import main
+from data_generation.run_complete_evaluation import run_complete_evaluation
 
 if __name__ == "__main__":
     # 默认参数
@@ -47,7 +47,7 @@ if __name__ == "__main__":
     print()
     
     # 运行完整流程
-    main(num_problems, delay_seconds)
+    run_complete_evaluation(num_problems, delay_seconds)
 
 # 运行输出示例：
 # ================================================================================

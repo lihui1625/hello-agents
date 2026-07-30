@@ -52,9 +52,9 @@ for detail in results['detailed_results']:
     print()
 
 # 7. 导出结果
-evaluator.export_results(
+evaluator.export_to_bfcl_format(
     results,
-    output_file="./evaluation_results/bfcl_custom_result.json"
+    output_path="./evaluation_results/bfcl_custom_result.json"
 )
 
 print("✅ 结果已导出到 ./evaluation_results/bfcl_custom_result.json")

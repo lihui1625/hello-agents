@@ -28,10 +28,10 @@ def test_react_agent():
 
     # 注册搜索工具（如果可用）
     try:
-        from hello_agents import search
+        from my_advanced_search import search
         tool_registry.register_function("search", "搜索互联网信息", search)
         print("✅ 搜索工具注册成功")
-    except ImportError:
+    except ImportError as e:
         print("⚠️ 搜索工具未找到，跳过注册")
     
     # 创建自定义ReActAgent

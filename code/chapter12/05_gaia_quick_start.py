@@ -12,6 +12,8 @@
 """
 
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from hello_agents import SimpleAgent, HelloAgentsLLM
 from hello_agents.tools import GAIAEvaluationTool
 
@@ -21,9 +23,6 @@ YOUR FINAL ANSWER should be a number OR as few words as possible OR a comma sepa
 If you are asked for a number, don't use comma to write your number neither use units such as $ or percent sign unless specified otherwise.
 If you are asked for a string, don't use articles, neither abbreviations (e.g. for cities), and write the digits in plain text unless specified otherwise.
 If you are asked for a comma separated list, apply the above rules depending of whether the element to be put in the list is a number or a string."""
-
-# 1. 设置HuggingFace Token（如果还没设置）
-# os.environ["HF_TOKEN"] = "your_huggingface_token_here"
 
 # 2. 创建智能体（必须使用GAIA官方系统提示词）
 llm = HelloAgentsLLM()
@@ -47,9 +46,12 @@ results = gaia_tool.run(
 
 # 5. 查看结果
 print(f"\n评估结果:")
-print(f"精确匹配率: {results['exact_match_rate']:.2%}")
-print(f"部分匹配率: {results['partial_match_rate']:.2%}")
-print(f"正确数: {results['correct_samples']}/{results['total_samples']}")
+if "error" in results:
+    print(f"❌ 评估未完成: {results['error']}")
+else:
+    print(f"精确匹配率: {results['exact_match_rate']:.2%}")
+    print(f"部分匹配率: {results['partial_match_rate']:.2%}")
+    print(f"正确数: {results['exact_matches']}/{results['total_samples']}")
 
 # 运行输出示例：
 # ============================================================

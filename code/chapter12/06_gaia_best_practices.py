@@ -10,6 +10,8 @@
 """
 
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from hello_agents import SimpleAgent, HelloAgentsLLM
 from hello_agents.tools import GAIAEvaluationTool
 
@@ -41,23 +43,32 @@ print("="*60)
 # 第一步：评估Level 1（简单任务）
 print("\n第一步：评估Level 1（简单任务）")
 results_l1 = gaia_tool.run(agent, level=1, max_samples=10)
-print(f"Level 1精确匹配率: {results_l1['exact_match_rate']:.2%}")
-
-# 第二步：如果Level 1表现良好，评估Level 2
-if results_l1['exact_match_rate'] > 0.6:
-    print("\n第二步：评估Level 2（中等任务）")
-    results_l2 = gaia_tool.run(agent, level=2, max_samples=10)
-    print(f"Level 2精确匹配率: {results_l2['exact_match_rate']:.2%}")
-    
-    # 第三步：如果Level 2表现良好，评估Level 3
-    if results_l2['exact_match_rate'] > 0.4:
-        print("\n第三步：评估Level 3（困难任务）")
-        results_l3 = gaia_tool.run(agent, level=3, max_samples=10)
-        print(f"Level 3精确匹配率: {results_l3['exact_match_rate']:.2%}")
-    else:
-        print("\n⚠️ Level 2表现不佳，建议先优化后再评估Level 3")
+if "error" in results_l1:
+    print(f"❌ Level 1评估失败: {results_l1['error']}")
 else:
-    print("\n⚠️ Level 1表现不佳，建议先优化后再评估更高级别")
+    print(f"Level 1精确匹配率: {results_l1['exact_match_rate']:.2%}")
+
+    # 第二步：如果Level 1表现良好，评估Level 2
+    if results_l1['exact_match_rate'] > 0.6:
+        print("\n第二步：评估Level 2（中等任务）")
+        results_l2 = gaia_tool.run(agent, level=2, max_samples=10)
+        if "error" in results_l2:
+            print(f"❌ Level 2评估失败: {results_l2['error']}")
+        else:
+            print(f"Level 2精确匹配率: {results_l2['exact_match_rate']:.2%}")
+
+            # 第三步：如果Level 2表现良好，评估Level 3
+            if results_l2['exact_match_rate'] > 0.4:
+                print("\n第三步：评估Level 3（困难任务）")
+                results_l3 = gaia_tool.run(agent, level=3, max_samples=10)
+                if "error" in results_l3:
+                    print(f"❌ Level 3评估失败: {results_l3['error']}")
+                else:
+                    print(f"Level 3精确匹配率: {results_l3['exact_match_rate']:.2%}")
+            else:
+                print("\n⚠️ Level 2表现不佳，建议先优化后再评估Level 3")
+    else:
+        print("\n⚠️ Level 1表现不佳，建议先优化后再评估更高级别")
 
 # ============================================================
 # 最佳实践2：小样本快速测试
@@ -70,7 +81,10 @@ print("="*60)
 for level in [1, 2, 3]:
     print(f"\n快速测试 Level {level}:")
     results = gaia_tool.run(agent, level=level, max_samples=2)
-    print(f"  精确匹配率: {results['exact_match_rate']:.2%}")
+    if "error" in results:
+        print(f"  ❌ 评估失败: {results['error']}")
+    else:
+        print(f"  精确匹配率: {results['exact_match_rate']:.2%}")
 
 # ============================================================
 # 最佳实践3：结果解读
@@ -121,11 +135,11 @@ def interpret_results(level, exact_match_rate):
             print("  - 优化工具链的组合使用")
 
 # 解读结果
-if 'results_l1' in locals():
+if 'results_l1' in locals() and "error" not in results_l1:
     interpret_results(1, results_l1['exact_match_rate'])
-if 'results_l2' in locals():
+if 'results_l2' in locals() and "error" not in results_l2:
     interpret_results(2, results_l2['exact_match_rate'])
-if 'results_l3' in locals():
+if 'results_l3' in locals() and "error" not in results_l3:
     interpret_results(3, results_l3['exact_match_rate'])
 
 # ============================================================
@@ -135,13 +149,13 @@ print("\n" + "="*60)
 print("难度递进分析")
 print("="*60)
 
-if 'results_l1' in locals() and 'results_l2' in locals():
+if 'results_l1' in locals() and 'results_l2' in locals() and "error" not in results_l1 and "error" not in results_l2:
     if results_l1['exact_match_rate'] > results_l2['exact_match_rate']:
         print("✅ 正常递进：Level 1 > Level 2")
     else:
         print("⚠️ 异常情况：Level 2 >= Level 1（可能是数据集偏差或智能体特性）")
 
-if 'results_l2' in locals() and 'results_l3' in locals():
+if 'results_l2' in locals() and 'results_l3' in locals() and "error" not in results_l2 and "error" not in results_l3:
     if results_l2['exact_match_rate'] > results_l3['exact_match_rate']:
         print("✅ 正常递进：Level 2 > Level 3")
     else:

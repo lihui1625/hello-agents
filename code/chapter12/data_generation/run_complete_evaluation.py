@@ -23,7 +23,10 @@ import json
 import os
 import sys
 from datetime import datetime
-from aime_generator import AIMEGenerator
+if __package__:
+    from .aime_generator import AIMEGenerator
+else:
+    from aime_generator import AIMEGenerator
 from hello_agents import SimpleAgent, HelloAgentsLLM
 from hello_agents.tools import LLMJudgeTool, WinRateTool
 

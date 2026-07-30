@@ -74,7 +74,7 @@ class MyReActAgent(ReActAgent):
 
             # 2. 调用LLM
             messages = [{"role": "user", "content": prompt}]
-            response_text = self.llm.invoke(messages, **kwargs)
+            response_text = self.llm.invoke(messages, **kwargs).content
 
             # 3. 解析输出
             thought, action = self._parse_output(response_text)
@@ -98,3 +98,18 @@ class MyReActAgent(ReActAgent):
         self.add_message(Message(input_text, "user"))
         self.add_message(Message(final_answer, "assistant"))
         return final_answer
+
+    def _parse_output(self, text: str):
+        thought_matches = re.findall(r"Thought:\s*(.*?)(?=\nAction:|$)", text, re.DOTALL)
+        action_matches = re.findall(r"Action:\s*(.*?)(?=\nThought:|$)", text, re.DOTALL)
+        thought = thought_matches[-1].strip() if thought_matches else None
+        action = action_matches[-1].strip() if action_matches else None
+        return thought, action
+
+    def _parse_action(self, action_text: str):
+        match = re.match(r"(\w+)\[(.*)\]", action_text, re.DOTALL)
+        return (match.group(1), match.group(2)) if match else (None, None)
+
+    def _parse_action_input(self, action_text: str):
+        match = re.match(r"\w+\[(.*)\]", action_text, re.DOTALL)
+        return match.group(1) if match else ""

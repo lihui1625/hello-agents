@@ -73,12 +73,17 @@ class ReActAgent:
         return None
 
     def _parse_output(self, text: str):
-        # Thought: 匹配到 Action: 或文本末尾
-        thought_match = re.search(r"Thought:\s*(.*?)(?=\nAction:|$)", text, re.DOTALL)
-        # Action: 匹配到文本末尾
-        action_match = re.search(r"Action:\s*(.*?)$", text, re.DOTALL)
-        thought = thought_match.group(1).strip() if thought_match else None
-        action = action_match.group(1).strip() if action_match else None
+        # 原始代码（有bug：lastgroup用于命名分组，此处无命名分组故返回None；search只取第一个匹配）
+        # thought_match = re.search(r"Thought:\s*(.*?)(?=\nAction:|$)", text, re.DOTALL)
+        # action_match = re.search(r"Action:\s*(.*?)$", text, re.DOTALL)
+        # thought = thought_match.lastgroup.strip() if thought_match else None
+        # action = action_match.lastgroup.strip() if action_match else None
+
+        # 修复：findall取所有匹配，[-1]拿最后一个（对应LLM本轮最新输出）
+        thought_matches = re.findall(r"Thought:\s*(.*?)(?=\nAction:|$)", text, re.DOTALL)
+        action_matches = re.findall(r"Action:\s*(.*?)(?=\nThought:|$)", text, re.DOTALL)
+        thought = thought_matches[-1].strip() if thought_matches else None
+        action = action_matches[-1].strip() if action_matches else None
         return thought, action
 
     def _parse_action(self, action_text: str):

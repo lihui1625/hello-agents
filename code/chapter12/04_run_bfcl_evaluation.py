@@ -24,7 +24,7 @@ import argparse
 import json
 
 # 添加项目路径
-project_root = Path(__file__).parent.parent
+project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
 from hello_agents import SimpleAgent, HelloAgentsLLM
@@ -169,26 +169,28 @@ def run_bfcl_official_eval(model_name: str, category: str) -> bool:
     print("="*60)
     
     try:
-        # 设置环境变量
         import os
-        os.environ['PYTHONUTF8'] = '1'
-        
-        # 运行BFCL评估
+        # 传递 PYTHONUTF8=1 给子进程，避免 Windows cp1252 编码错误
+        env = os.environ.copy()
+        env['PYTHONUTF8'] = '1'
+
+        # 运行BFCL评估（使用sys.executable避免Windows [WinError 5] 权限问题）
         cmd = [
-            "bfcl", "evaluate",
+            sys.executable, "-m", "bfcl_eval", "evaluate",
             "--model", model_name,
             "--test-category", category,
             "--partial-eval"
         ]
-        
+
         print(f"\n🔄 运行命令: {' '.join(cmd)}")
-        
+
         result = subprocess.run(
             cmd,
             cwd=str(project_root),
             capture_output=True,
             text=True,
-            encoding='utf-8'
+            encoding='utf-8',
+            env=env,
         )
         
         # 显示输出
@@ -217,10 +219,17 @@ def show_results(model_name: str, category: str):
     print("\n" + "="*60)
     print("步骤5: 展示评估结果")
     print("="*60)
-    
+
+    # bfcl_eval 将评分文件写到其包目录下的 score/，使用常量获取正确路径
+    try:
+        from bfcl_eval.constants.eval_config import SCORE_PATH
+        score_dir = Path(SCORE_PATH)
+    except Exception:
+        score_dir = project_root / "score"
+
     # CSV文件
-    csv_file = project_root / "score" / "data_non_live.csv"
-    
+    csv_file = score_dir / "data_non_live.csv"
+
     if csv_file.exists():
         print(f"\n📊 评估结果汇总:")
         with open(csv_file, 'r', encoding='utf-8') as f:
@@ -228,10 +237,10 @@ def show_results(model_name: str, category: str):
             print(content)
     else:
         print(f"\n⚠️ 未找到评估结果文件: {csv_file}")
-    
+
     # 详细评分文件
     safe_model_name = model_name.replace("/", "_")
-    score_file = project_root / "score" / safe_model_name / "non_live" / f"BFCL_v4_{category}_score.json"
+    score_file = score_dir / safe_model_name / "non_live" / f"BFCL_v4_{category}_score.json"
     
     if score_file.exists():
         print(f"\n📝 详细评分文件:")

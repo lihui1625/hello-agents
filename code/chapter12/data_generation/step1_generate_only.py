@@ -10,7 +10,10 @@ python data_generation/step1_generate_only.py 30 3.0
 """
 
 import sys
-from aime_generator import AIMEGenerator
+if __package__:
+    from .aime_generator import AIMEGenerator
+else:
+    from aime_generator import AIMEGenerator
 
 
 def main():
